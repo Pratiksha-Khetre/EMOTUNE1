@@ -27,6 +27,41 @@ SPOTIFY_REDIRECT_URI = os.getenv(
     "SPOTIFY_REDIRECT_URI", "http://127.0.0.1:8000/spotify/callback"
 )
 
+# main.py - CORS Configuration Section
+# Replace your existing CORS setup with this:
+
+import os
+from fastapi.middleware.cors import CORSMiddleware
+
+# Get allowed origins from environment or use defaults
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "https://emotune-nine.vercel.app,http://localhost:5173,http://127.0.0.1:5173"
+).split(",")
+
+# Add wildcard for Vercel preview deployments (optional but recommended)
+ALLOWED_ORIGINS.extend([
+    "https://emotune-*.vercel.app",  # Preview deployments
+])
+
+print(f"🌐 CORS Allowed Origins: {ALLOWED_ORIGINS}")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,  # Specific origins
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],  # Expose all response headers
+    max_age=3600,  # Cache preflight requests for 1 hour
+)
+
+# CRITICAL: Add OPTIONS handler for preflight requests
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    """Handle CORS preflight OPTIONS requests"""
+    return {"message": "OK"}
+
 # You can add more allowed origins if needed
 ALLOWED_ORIGINS = [
     "https://emotune-nine.vercel.app",
@@ -37,13 +72,13 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
 ]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=ALLOWED_ORIGINS,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 # ========== MODEL CONFIG ==========
 MODEL_PATH = os.getenv("MODEL_PATH", "./models/raf_db_model.h5")
